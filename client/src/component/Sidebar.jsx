@@ -102,7 +102,7 @@ function Sidebar({setMenu}) {
         className="flex items-center gap-2 px-4 py-2  rounded-xl font-medium shadow-sm  transition"
       >
         <LogOut className="w-4 h-4" />
-        Logout
+        <UserButton/>
       </button>
     </div>
 
