@@ -1,22 +1,26 @@
-import express from 'express';
-import { connectDb } from './config/Db.js';
+import express from "express";
 import dotenv from "dotenv";
+import { connectDb } from "./config/Db.js";
 import { serve } from "inngest/express";
-import { Inngest,functions } from 'inngest';
 
-dotenv.config(); 
+// خد الـ inngest و functions من ملفك
+import { inngest, functions } from "./inngest/index.js";
 
-const app=express();
+dotenv.config();
 
+const app = express();
 app.use(express.json());
+
+// Inngest endpoint
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
-await connectDb()
-app.get('/',(req,res)=>{
-    res.end("hello ahmed")
-})
+// Connect DB
+await connectDb();
 
-app.listen(4000,(req,res)=>{
-    console.log("welcome pro")
-})
-console.log(process.env.MONGOSE_URL)
+app.get("/", (req, res) => {
+  res.end("hello ahmed");
+});
+
+app.listen(4000, () => {
+  console.log("welcome pro");
+});

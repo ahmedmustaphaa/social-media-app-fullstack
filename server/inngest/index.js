@@ -1,12 +1,11 @@
 import { Inngest } from "inngest";
 import { User } from "../model/User.js";
 
-// 🔹 إنشاء client
 export const inngest = new Inngest({ id: "pingup_app" });
 
-// 🔹 Function: إنشاء مستخدم جديد
+// إنشاء مستخدم
 const createUser = inngest.createFunction(
-  { name: "Create User" },
+  { id: "user.create.fn", name: "Create User" },   // 👈 ID مختلف
   { event: "user/create" },
   async ({ event }) => {
     const { email, full_name, username } = event.data;
@@ -25,32 +24,28 @@ const createUser = inngest.createFunction(
   }
 );
 
+// تحديث مستخدم
 const updateUser = inngest.createFunction(
-  { name: "Update User" },
+  { id: "user.update.fn", name: "Update User" },   // 👈 ID مختلف
   { event: "user/update" },
   async ({ event }) => {
     const { userId, updates } = event.data;
 
-    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
-      new: true,
-    });
-
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
     return { message: "✅ User updated", user: updatedUser };
   }
 );
 
-// 🔹 Function: حذف مستخدم
+// حذف مستخدم
 const deleteUser = inngest.createFunction(
-  { name: "Delete User" },
+  { id: "user.delete.fn", name: "Delete User" },   // 👈 ID مختلف
   { event: "user/delete" },
   async ({ event }) => {
     const { userId } = event.data;
 
     await User.findByIdAndDelete(userId);
-
     return { message: "🗑️ User deleted", userId };
   }
 );
 
-// 🔹 Export all functions
 export const functions = [createUser, updateUser, deleteUser];
