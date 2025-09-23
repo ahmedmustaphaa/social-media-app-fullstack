@@ -9,6 +9,7 @@ const createUser = inngest.createFunction(
   { event: "user/create" },
   async ({ event }) => {
     const { email, full_name, username } = event.data;
+    console.log(event)
 
     const newUser = await User.create({
       email,
