@@ -1,26 +1,64 @@
-import express from "express";
-import dotenv from "dotenv";
-import { connectDb } from "./config/Db.js";
-import { serve } from "inngest/express";
+import { Inngest } from "inngest";
+import { User } from "../model/User.js";
 
-// خد الـ inngest و functions من ملفك
-import { inngest, functions } from "./inngest/index.js";
+// إنشاء Inngest client
+export const inngest = new Inngest({ id: "pingApp" });
 
-dotenv.config();
+// 🟢 إنشاء مستخدم
+const createUser = inngest.createFunction(
+  { id: "user.create.fn", name: "Create User" },
+  { event: "user.created" }, // ✅ Clerk بيبعت كدا
+  async ({ event }) => {
+    const { id, first_name, last_name, username, image_url, email_addresses } = event.data;
 
-const app = express();
-app.use(express.json());
+    const email = email_addresses?.[0]?.email_address || "";
 
-// Inngest endpoint
-app.use("/api/inngest", serve({ client: inngest, functions }));
+    const newUser = await User.create({
+      clerkId: id,
+      email,
+      full_name: `${first_name || ""} ${last_name || ""}`.trim(),
+      username: username || "",
+      profile_picture: image_url || "",
+    });
 
-// Connect DB
-await connectDb();
+    return { message: "✅ User created", user: newUser };
+  }
+);
 
-app.get("/", (req, res) => {
-  res.end("hello ahmed");
-});
+// 🟡 تحديث مستخدم
+const updateUser = inngest.createFunction(
+  { id: "user.update.fn", name: "Update User" },
+  { event: "user.updated" }, // ✅ Clerk بيبعت كدا
+  async ({ event }) => {
+    const { id, first_name, last_name, username, image_url, email_addresses } = event.data;
 
-app.listen(4000, () => {
-  console.log("welcome pro");
-});
+    const email = email_addresses?.[0]?.email_address || "";
+
+    const updatedUser = await User.findOneAndUpdate(
+      { clerkId: id },
+      {
+        email,
+        full_name: `${first_name || ""} ${last_name || ""}`.trim(),
+        username: username || "",
+        profile_picture: image_url || "",
+      },
+      { new: true }
+    );
+
+    return { message: "✅ User updated", user: updatedUser };
+  }
+);
+
+// 🔴 حذف مستخدم
+const deleteUser = inngest.createFunction(
+  { id: "user.delete.fn", name: "Delete User" },
+  { event: "user.deleted" }, // ✅ Clerk بيبعت كدا
+  async ({ event }) => {
+    const { id } = event.data;
+
+    await User.findOneAndDelete({ clerkId: id });
+    return { message: "🗑️ User deleted", userId: id };
+  }
+);
+
+export const functions = [createUser, updateUser, deleteUser];
