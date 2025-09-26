@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 
 // Inngest endpoint
-app.use("/api/inngest", serve({ client: inngest, functions }));
+app.use("/api/inngest", serve( inngest, functions ));
 
 // Connect DB
 await connectDb();
