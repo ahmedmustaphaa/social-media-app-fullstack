@@ -7,23 +7,18 @@ export const inngest = new Inngest({ id: "pingApp" });
 // 🟢 إنشاء مستخدم
 const createUser = inngest.createFunction(
   { id: "user.create.fn", name: "Create User" },
-  { event: "user.created" }, // نفس اللي Clerk بيبعت
+  { event: "user.created" }, // ✅ Clerk بيبعت كدا
   async ({ event }) => {
-    const data = event.data;
+    const { id, first_name, last_name, username, image_url, email_addresses } = event.data;
 
-    // استخراج القيم من data
-    const email =
-      data.email_addresses?.find((e) => e.id === data.primary_email_address_id)
-        ?.email_address || "";
-
-    const full_name = `${data.first_name || ""} ${data.last_name || ""}`.trim();
+    const email = email_addresses?.[0]?.email_address || "";
 
     const newUser = await User.create({
+      clerkId: id,
       email,
-      full_name,
-      username: data.username || "",
-      profile_picture: data.image_url || data.profile_image_url || "",
-      clerkId: data.id, // نخزن الـ Clerk ID للربط
+      full_name: `${first_name || ""} ${last_name || ""}`.trim(),
+      username: username || "",
+      profile_picture: image_url || "",
     });
 
     return { message: "✅ User created", user: newUser };
@@ -33,26 +28,20 @@ const createUser = inngest.createFunction(
 // 🟡 تحديث مستخدم
 const updateUser = inngest.createFunction(
   { id: "user.update.fn", name: "Update User" },
-  { event: "user.updated" },
+  { event: "user.updated" }, // ✅ Clerk بيبعت كدا
   async ({ event }) => {
-    const data = event.data;
+    const { id, first_name, last_name, username, image_url, email_addresses } = event.data;
 
-    const email =
-      data.email_addresses?.find((e) => e.id === data.primary_email_address_id)
-        ?.email_address || "";
-
-    const full_name = `${data.first_name || ""} ${data.last_name || ""}`.trim();
-
-    const updates = {
-      email,
-      full_name,
-      username: data.username || "",
-      profile_picture: data.image_url || data.profile_image_url || "",
-    };
+    const email = email_addresses?.[0]?.email_address || "";
 
     const updatedUser = await User.findOneAndUpdate(
-      { clerkId: data.id },
-      updates,
+      { clerkId: id },
+      {
+        email,
+        full_name: `${first_name || ""} ${last_name || ""}`.trim(),
+        username: username || "",
+        profile_picture: image_url || "",
+      },
       { new: true }
     );
 
@@ -63,12 +52,12 @@ const updateUser = inngest.createFunction(
 // 🔴 حذف مستخدم
 const deleteUser = inngest.createFunction(
   { id: "user.delete.fn", name: "Delete User" },
-  { event: "user.deleted" },
+  { event: "user.deleted" }, // ✅ Clerk بيبعت كدا
   async ({ event }) => {
-    const data = event.data;
+    const { id } = event.data;
 
-    await User.findOneAndDelete({ clerkId: data.id });
-    return { message: "🗑️ User deleted", clerkId: data.id };
+    await User.findOneAndDelete({ clerkId: id });
+    return { message: "🗑️ User deleted", userId: id };
   }
 );
 
