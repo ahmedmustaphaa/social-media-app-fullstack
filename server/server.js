@@ -1,26 +1,26 @@
 import express from "express";
+import cors from "cors";
 import dotenv from "dotenv";
-import { connectDb } from "./config/Db.js";
+import { connectedDb } from "./config/Db.js";
 import { serve } from "inngest/express";
-
-// خد الـ inngest و functions من ملفك
-import { inngest, functions } from "./inngest/index.js";
-
+import { inngest,functions } from "./inngest/index.js";
 dotenv.config();
 
 const app = express();
-app.use(express.json());
 
-// Inngest endpoint
+// Middleware
+app.use(cors());
+app.use(express.json());
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
-// Connect DB
-await connectDb();
 
 app.get("/", (req, res) => {
-  res.end("hello ahmed");
+  res.send("hello pro");
 });
 
-app.listen(4000, () => {
-  console.log("welcome pro");
+await connectedDb()
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
